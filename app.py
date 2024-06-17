@@ -8,8 +8,12 @@ app = Flask(__name__)
 
 # Directory containing models (relative path)
 models_dir = os.path.join(os.getcwd(), "models")
+
 # Specific model files to use
-model_files = ["cnn_model.h5", "mobilenet_model.h5"]
+models_path = [
+    os.path.join(models_dir, "cnn_model.h5"),
+    os.path.join(models_dir, "mobilenet_model.h5")
+]
 
 # Target image size
 image_size = (114, 114)
@@ -63,22 +67,18 @@ def predict():
             predictions = {}
             
             # Load and predict using selected models
-            for model_name in model_files:
-                model_path = os.path.join(models_dir, model_name)
+            for model_path in models_path:
                 app.logger.info(f"Loading model from: {model_path}")
-                if os.path.exists(model_path):  # Check if the model file exists
-                    model = tf.keras.models.load_model(model_path)
-                    class_prediction = model.predict(img)
-                    confidence = float(np.max(class_prediction)) * 100
-                    class_idx = np.argmax(class_prediction, axis=1)[0]
+                model = tf.keras.models.load_model(model_path)
+                class_prediction = model.predict(img)
+                confidence = float(np.max(class_prediction)) * 100
+                class_idx = np.argmax(class_prediction, axis=1)[0]
 
-                    # Store predictions with model name
-                    predictions[model_name] = {
-                        "bean": class_idx,
-                        "confidence": confidence
-                    }
-                else:
-                    app.logger.error(f"Model file not found: {model_path}")
+                # Store predictions with model name
+                predictions[model_name] = {
+                    "bean": class_idx,
+                    "confidence": confidence
+                }
             
             # Determine the best prediction
             if predictions:
