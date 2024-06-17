@@ -3,13 +3,12 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 import os
-import glob
 
 app = Flask(__name__)
 
 # Directory containing models
 models_dir = r"D:/RGT/Code/Project/Cocoa_Bean_Prediction/models"
-# Limit to specific models
+# Specific model files to use
 model_files = ["cnn_model.h5", "mobilenet_model.h5"]
 
 # Target image size
@@ -42,7 +41,7 @@ def index_view():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    if request.method == 'POST':
+    try:
         if 'file' not in request.files:
             return "No file part", 400
 
@@ -66,38 +65,46 @@ def predict():
             # Load and predict using selected models
             for model_name in model_files:
                 model_path = os.path.join(models_dir, model_name)
-                model = tf.keras.models.load_model(model_path)
-                class_prediction = model.predict(img)
-                confidence = float(np.max(class_prediction)) * 100
-                class_idx = np.argmax(class_prediction, axis=1)[0]
+                if os.path.exists(model_path):  # Check if the model file exists
+                    model = tf.keras.models.load_model(model_path)
+                    class_prediction = model.predict(img)
+                    confidence = float(np.max(class_prediction)) * 100
+                    class_idx = np.argmax(class_prediction, axis=1)[0]
 
-                # Store predictions with model name
-                predictions[model_name] = {
-                    "bean": class_idx,
-                    "confidence": confidence
-                }
+                    # Store predictions with model name
+                    predictions[model_name] = {
+                        "bean": class_idx,
+                        "confidence": confidence
+                    }
+                else:
+                    app.logger.error(f"Model file not found: {model_path}")
             
             # Determine the best prediction
-            best_model, best_pred = max(predictions.items(), key=lambda item: item[1]['confidence'])
-            best_bean_class = best_pred['bean']
-            confidence = best_pred['confidence']
-            
-            bean_dict = {
-                0: "Bean Fraction",
-                1: "Broken Bean",
-                2: "Fermented Bean",
-                3: "Moldy Bean",
-                4: "Unfermented Bean",
-                5: "Whole Bean"
-            }
-            
-            bean = bean_dict.get(best_bean_class, "Error")
+            if predictions:
+                best_model, best_pred = max(predictions.items(), key=lambda item: item[1]['confidence'])
+                best_bean_class = best_pred['bean']
+                confidence = best_pred['confidence']
+                
+                bean_dict = {
+                    0: "Bean Fraction",
+                    1: "Broken Bean",
+                    2: "Fermented Bean",
+                    3: "Moldy Bean",
+                    4: "Unfermented Bean",
+                    5: "Whole Bean"
+                }
+                
+                bean = bean_dict.get(best_bean_class, "Error")
 
-            return render_template('predict.html', bean=bean, confidence=confidence, best_model=best_model)
+                return render_template('predict.html', bean=bean, confidence=confidence, best_model=best_model)
+            else:
+                return "No valid models found for prediction", 500
         else:
             return "File type not allowed or file could not be processed", 400
 
-    return "Invalid request method", 405
+    except Exception as e:
+        app.logger.error(f"Error during prediction: {e}")
+        return "Internal server error", 500
 
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=False, port=8000)
