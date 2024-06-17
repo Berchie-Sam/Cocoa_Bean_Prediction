@@ -1,19 +1,16 @@
-# app.py
-
-from flask import Flask, render_template, request, url_for
+from flask import Flask, render_template, request
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
-from tensorflow.keras.applications.inception_resnet_v2 import preprocess_input
 import os
 import glob
-import base64
 
 app = Flask(__name__)
 
 # Directory containing models
 models_dir = r"D:/RGT/Code/Project/Cocoa_Bean_Prediction/models"
-models_path = os.path.join(models_dir, "*.h5")
+# Limit to specific models
+model_files = ["cnn_model.h5", "mobilenet_model.h5"]
 
 # Target image size
 image_size = (114, 114)
@@ -36,7 +33,7 @@ def read_image(filename):
     img = load_img(filename, target_size=image_size)
     x = img_to_array(img)
     x = np.expand_dims(x, axis=0)
-    x = preprocess_input(x)
+    x = x / 255.0  # Normalize to [0, 1]
     return x
 
 @app.route('/')
@@ -63,25 +60,21 @@ def predict():
             # Read the image again to prepare for prediction
             img = read_image(file_path)
             
-            # Encode image as base64 to pass to predict.html
-            with open(file_path, "rb") as img_file:
-                encoded_image = base64.b64encode(img_file.read()).decode('utf-8')
-
-            # Dictionary to store predictions from all models
+            # Dictionary to store predictions from selected models
             predictions = {}
             
-            # Load and predict using all models
-            for model_path in glob.glob(models_path):
+            # Load and predict using selected models
+            for model_name in model_files:
+                model_path = os.path.join(models_dir, model_name)
                 model = tf.keras.models.load_model(model_path)
                 class_prediction = model.predict(img)
                 confidence = float(np.max(class_prediction)) * 100
                 class_idx = np.argmax(class_prediction, axis=1)[0]
 
                 # Store predictions with model name
-                predictions[os.path.basename(model_path)] = {
+                predictions[model_name] = {
                     "bean": class_idx,
-                    "confidence": confidence,
-                    'user_image': encoded_image  # Pass base64-encoded image data
+                    "confidence": confidence
                 }
             
             # Determine the best prediction
@@ -100,7 +93,7 @@ def predict():
             
             bean = bean_dict.get(best_bean_class, "Error")
 
-            return render_template('predict.html', bean=bean, confidence=confidence, user_image=encoded_image, best_model=best_model)
+            return render_template('predict.html', bean=bean, confidence=confidence, best_model=best_model)
         else:
             return "File type not allowed or file could not be processed", 400
 
