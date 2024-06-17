@@ -1,0 +1,101 @@
+/* Global styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 800px; /* Increased for better readability on larger screens */
+    margin: 0 auto;
+    padding: 30px;
+}
+
+.card {
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+.card-title {
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    text-align: center;
+}
+
+/* Form styles */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-control-file {
+    width: 100%;
+}
+
+.btn-primary {
+    width: 100%;
+}
+
+.btn-secondary {
+    width: 100%;
+}
+
+/* Image preview */
+.image-preview {
+    max-height: 300px;
+    margin-top: 20px;
+    display: none; /* Initially hidden */
+}
+
+/* Loading indicator */
+.loading-indicator {
+    display: none; /* Initially hidden */
+    text-align: center;
+    margin-top: 20px;
+}
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Result container styles */
+.result-container {
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 30px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.result-container h1 {
+    font-size: 1.8rem;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.result-container img {
+    max-width: 100%;
+    height: auto;
+    margin-top: 20px;
+}
+
+.result-container p {
+    margin-bottom: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    .result-container {
+        padding: 20px;
+    }
+}
