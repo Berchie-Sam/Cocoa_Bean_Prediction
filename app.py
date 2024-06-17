@@ -6,7 +6,7 @@ import os
 
 app = Flask(__name__)
 
-# Directory containing models (use relative path)
+# Directory containing models (relative path)
 models_dir = os.path.join(os.getcwd(), "models")
 # Specific model files to use
 model_files = ["cnn_model.h5", "mobilenet_model.h5"]
@@ -65,6 +65,7 @@ def predict():
             # Load and predict using selected models
             for model_name in model_files:
                 model_path = os.path.join(models_dir, model_name)
+                app.logger.info(f"Loading model from: {model_path}")
                 if os.path.exists(model_path):  # Check if the model file exists
                     model = tf.keras.models.load_model(model_path)
                     class_prediction = model.predict(img)
