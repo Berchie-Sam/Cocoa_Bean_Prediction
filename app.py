@@ -6,8 +6,8 @@ import os
 
 app = Flask(__name__)
 
-# Directory containing models
-models_dir = r"D:/RGT/Code/Project/Cocoa_Bean_Prediction/models"
+# Directory containing models (use relative path)
+models_dir = os.path.join(os.getcwd(), "models")
 # Specific model files to use
 model_files = ["cnn_model.h5", "mobilenet_model.h5"]
 
