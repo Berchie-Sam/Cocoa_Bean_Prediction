@@ -69,6 +69,8 @@ def predict():
             # Load and predict using selected models
             for model_path in models_path:
                 app.logger.info(f"Loading model from: {model_path}")
+                model_name = os.path.basename(model_path).split('.')[0]
+                app.logger.debug(f"Model name: {model_name}")
                 model = tf.keras.models.load_model(model_path)
                 class_prediction = model.predict(img)
                 confidence = float(np.max(class_prediction)) * 100
