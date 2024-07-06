@@ -55,11 +55,20 @@ The `index.html` file is the homepage of the application, where users can upload
 - **Buttons**: Provides buttons to clear the preview or submit the form.
 - **Loading indicator**: Displays a loading indicator while the prediction is processing.
 
+<div style="text-align:center;">
+    <img src="https://github.com/Berchie-Sam/Cocoa_Bean_Prediction/blob/main/static/assets/home.png" width="600" height="400">
+</div>
+
 ### predict.html
 The `predict.html` file displays the prediction results. It includes:
 - **Predicted bean type**: Displays the predicted cocoa bean type.
 - **Confidence score**: Shows the confidence score of the prediction.
 - **Upload another image button**: Allows users to upload another image for classification.
+
+<div style="text-align:center;">
+    <img src="https://github.com/Berchie-Sam/Cocoa_Bean_Prediction/blob/main/static/assets/result_page.png" width="600" height="400">
+</div>
+
 
 ## Static
 
