@@ -146,11 +146,5 @@ We welcome contributions! Please follow these steps to contribute:
     ```
 5. Create a new Pull Request.
 
-## License
-This project is licensed under the MIT License. See the LICENSE file for details.
-
-## Acknowledgements
-We would like to thank all the contributors and the open-source community for their valuable work.
-
 ## Contact Information
 For any inquiries or questions, please contact us at: [soberchie@gmail.com]
