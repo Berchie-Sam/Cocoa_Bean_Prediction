@@ -18,7 +18,7 @@ The cocoa beans can be classified into the following types:
 ## Folder Structure
 There are four folders in the directory. The `data  analysis and modelling` folder contains the notebook files for analysis, model definitions and training. The `models` folder contains the trained models. The `static` folder contains CSS files and images. The `templates` folder contains the html files for the home and prediction result pages.
 
-<img src="https://github.com/dzeble/Heart-Disease-Prediction-Group-2/assets/83512618/28adc4c0-d338-4c5d-a936-5973b4c7b830" width="100" heigth="200">git 
+<img src="https://github.com/Berchie-Sam/Cocoa_Bean_Prediction/blob/main/static/assets/folder_structure.jpg" width="200" heigth="300">
 
 
 ## Notebooks
