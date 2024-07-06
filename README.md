@@ -125,6 +125,7 @@ The application will classify the uploaded image into one of the six cocoa bean 
 
 ## Contributing
 We welcome contributions! Please follow these steps to contribute:
+
 1. Fork the repository.
 2. Create a new branch:
     ```bash
@@ -139,6 +140,9 @@ We welcome contributions! Please follow these steps to contribute:
     git push origin feature-branch
     ```
 5. Create a new Pull Request.
+
+- **Note**: Please ensure that your pull request targets the `main` branch of the repository when submitting contributions.
+
 
 ## Contact Information
 For any inquiries or questions, please contact us at: [soberchie@gmail.com]
