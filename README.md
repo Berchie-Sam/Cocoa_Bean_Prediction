@@ -96,8 +96,7 @@ The `assets` folder is used to store images and other resources that maybe be im
 ### Steps
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/cocoa-bean-prediction.git
-    cd cocoa-bean-prediction
+    git clone https://github.com/Berchie-Sam/Cocoa_Bean_Prediction.git
     ```
 2. Install the required packages:
     ```bash
