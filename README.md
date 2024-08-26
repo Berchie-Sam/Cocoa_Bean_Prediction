@@ -39,6 +39,32 @@ This notebook contains the code for training the deep learning model used for cl
 - **Evaluation metrics**: Metrics used to evaluate the performance of the models.
 
 
+## Model Architectures
+
+### 1. Custom CNN Model
+
+The Custom CNN model consists of the following layers:
+- **Convolutional Layers**: Five convolutional layers are used to extract features from the images. These layers are followed by max-pooling layers to reduce the spatial dimensions, allowing the network to learn more complex patterns.
+- **Dense Layers**: After flattening the output from the convolutional layers, the model includes two dense layers to further process the extracted features. Dropout is applied to reduce overfitting.
+- **Output Layer**: The final layer is a dense layer with a softmax activation function, producing probabilities for each of the six cocoa bean categories.
+
+### 2. InceptionV3 Model
+
+The InceptionV3 model is a pre-trained convolutional neural network (CNN) on the ImageNet dataset, repurposed for cocoa bean classification. The architecture includes:
+- **Base Model**: The base of the model is the InceptionV3 network, excluding its top (fully connected) layers. This provides a robust feature extraction mechanism.
+- **Global Average Pooling**: After the base model, a global average pooling layer reduces the spatial dimensions.
+- **Dense Layers**: Similar to the Custom CNN, two dense layers are used with dropout to enhance learning and prevent overfitting.
+- **Output Layer**: A dense softmax layer outputs the classification probabilities for the six categories.
+
+### 3. MobileNet Model
+
+The MobileNet model is another pre-trained network on ImageNet, designed for mobile and embedded vision applications. It is used for its efficiency and lightweight architecture:
+- **Base Model**: The MobileNet architecture is used as the base model, excluding the top layers, which serves as a feature extractor.
+- **Global Average Pooling**: A global average pooling layer follows the MobileNet base, condensing the features.
+- **Dense Layers**: Two dense layers with dropout are added to adapt the model to the cocoa bean classification task.
+- **Output Layer**: The final layer is a softmax layer that provides the classification probabilities for the six cocoa bean types.
+
+
 ## app.py
 
 The `app.py` file is the main Flask application that handles image uploads, predictions, and rendering the results. Key functionalities include:
