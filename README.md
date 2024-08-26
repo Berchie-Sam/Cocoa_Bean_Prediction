@@ -48,7 +48,7 @@ The Custom CNN model consists of the following layers:
 - **Dense Layers**: After flattening the output from the convolutional layers, the model includes two dense layers to further process the extracted features. Dropout is applied to reduce overfitting.
 - **Output Layer**: The final layer is a dense layer with a softmax activation function, producing probabilities for each of the six cocoa bean categories.
 
-<img src="https://github.com/Berchie-Sam/Cocoa_Bean_Prediction/blob/main/static/assets/custom_cnn.jpg" width="400" heigth="600">
+<img src="https://github.com/Berchie-Sam/Cocoa_Bean_Prediction/blob/main/static/assets/custom_cnn.jpg" width="1000" heigth="1000">
 
 ### 2. InceptionV3 Model
 
@@ -58,7 +58,7 @@ The InceptionV3 model is a pre-trained convolutional neural network (CNN) on the
 - **Dense Layers**: Similar to the Custom CNN, two dense layers are used with dropout to enhance learning and prevent overfitting.
 - **Output Layer**: A dense softmax layer outputs the classification probabilities for the six categories.
 
-<img src="https://github.com/Berchie-Sam/Cocoa_Bean_Prediction/blob/main/static/assets/Inception-V3.png" width="400" heigth="600">
+<img src="https://github.com/Berchie-Sam/Cocoa_Bean_Prediction/blob/main/static/assets/Inception-V3.png" width="1000" heigth="1000">
 
 ### 3. MobileNet Model
 
@@ -68,7 +68,7 @@ The MobileNet model is another pre-trained network on ImageNet, designed for mob
 - **Dense Layers**: Two dense layers with dropout are added to adapt the model to the cocoa bean classification task.
 - **Output Layer**: The final layer is a softmax layer that provides the classification probabilities for the six cocoa bean types.
 
-<img src="https://github.com/Berchie-Sam/Cocoa_Bean_Prediction/blob/main/static/assets/MobileNet-V1-architecture.png" width="400" heigth="600">
+<img src="https://github.com/Berchie-Sam/Cocoa_Bean_Prediction/blob/main/static/assets/MobileNet-V1-architecture.png" width="1000" heigth="1000">
 
 ## app.py
 
