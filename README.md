@@ -8,12 +8,12 @@ Cocoa Bean Prediction is a web application that utilizes deep learning to classi
 
 The cocoa beans can be classified into the following types:
 
-0. Bean Fraction
-1. Broken Bean
-2. Fermented Bean
-3. Moldy Bean
-4. Unfermented Bean
-5. Whole Bean
+1. Bean Fraction
+2. Broken Bean
+3. Fermented Bean
+4. Moldy Bean
+5. Unfermented Bean
+6. Whole Bean
 
 ## Folder Structure
 There are four folders in the directory. The `data  analysis and modelling` folder contains the notebook files for analysis, model definitions and training. The `models` folder contains the trained models. The `static` folder contains CSS files and images. The `templates` folder contains the html files for the home and prediction result pages.
@@ -48,6 +48,8 @@ The Custom CNN model consists of the following layers:
 - **Dense Layers**: After flattening the output from the convolutional layers, the model includes two dense layers to further process the extracted features. Dropout is applied to reduce overfitting.
 - **Output Layer**: The final layer is a dense layer with a softmax activation function, producing probabilities for each of the six cocoa bean categories.
 
+<img src="https://github.com/Berchie-Sam/Cocoa_Bean_Prediction/blob/main/static/assets/custom_cnn.jpg" width="400" heigth="600">
+
 ### 2. InceptionV3 Model
 
 The InceptionV3 model is a pre-trained convolutional neural network (CNN) on the ImageNet dataset, repurposed for cocoa bean classification. The architecture includes:
@@ -55,6 +57,8 @@ The InceptionV3 model is a pre-trained convolutional neural network (CNN) on the
 - **Global Average Pooling**: After the base model, a global average pooling layer reduces the spatial dimensions.
 - **Dense Layers**: Similar to the Custom CNN, two dense layers are used with dropout to enhance learning and prevent overfitting.
 - **Output Layer**: A dense softmax layer outputs the classification probabilities for the six categories.
+
+<img src="https://github.com/Berchie-Sam/Cocoa_Bean_Prediction/blob/main/static/assets/Inception-V3.png" width="400" heigth="600">
 
 ### 3. MobileNet Model
 
@@ -64,6 +68,7 @@ The MobileNet model is another pre-trained network on ImageNet, designed for mob
 - **Dense Layers**: Two dense layers with dropout are added to adapt the model to the cocoa bean classification task.
 - **Output Layer**: The final layer is a softmax layer that provides the classification probabilities for the six cocoa bean types.
 
+<img src="https://github.com/Berchie-Sam/Cocoa_Bean_Prediction/blob/main/static/assets/MobileNet-V1-architecture.png" width="400" heigth="600">
 
 ## app.py
 
