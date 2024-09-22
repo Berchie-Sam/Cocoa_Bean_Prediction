@@ -1,4 +1,7 @@
-from flask import Flask, render_template, request
+from PIL import Image
+from io import BytesIO
+import base64
+from flask import Flask, render_template, request, jsonify
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
@@ -38,6 +41,31 @@ def read_image(filename):
     x = np.expand_dims(x, axis=0)
     x = x / 255.0  # Normalize to [0, 1]
     return x
+
+@app.route('/upload', methods=['POST'])
+def upload_image():
+    try:
+        # Get the base64 encoded image from the request
+        data = request.json.get('image')
+        
+        # Remove the base64 header (if present)
+        image_data = data.split(',')[1]
+        
+        # Decode the image data
+        image_bytes = base64.b64decode(image_data)
+        
+        # Convert to an image
+        image = Image.open(BytesIO(image_bytes))
+        
+        # Save the image to the server (for example in 'uploads' directory)
+        if not os.path.exists('uploads'):
+            os.makedirs('uploads')
+        image_path = os.path.join('uploads', 'captured_image.png')
+        image.save(image_path)
+        
+        return jsonify({"message": "Image uploaded successfully!", "image_path": image_path}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 @app.route('/')
 def index_view():
