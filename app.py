@@ -6,6 +6,8 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 import os
+import logging
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -42,100 +44,120 @@ def read_image(filename):
     x = x / 255.0  # Normalize to [0, 1]
     return x
 
-@app.route('/upload', methods=['POST'])
-def upload_image():
-    try:
-        # Get the base64 encoded image from the request
-        data = request.json.get('image')
-        
-        # Remove the base64 header (if present)
-        image_data = data.split(',')[1]
-        
-        # Decode the image data
-        image_bytes = base64.b64decode(image_data)
-        
-        # Convert to an image
-        image = Image.open(BytesIO(image_bytes))
-        
-        # Save the image to the server (for example in 'uploads' directory)
-        if not os.path.exists('uploads'):
-            os.makedirs('uploads')
-        image_path = os.path.join('uploads', 'captured_image.png')
-        image.save(image_path)
-        
-        return jsonify({"message": "Image uploaded successfully!", "image_path": image_path}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
-
 @app.route('/')
 def index_view():
     return render_template('index.html')
 
+# Directory to save captured images
+captured_img_dir = os.path.join(target_img, 'D:\RGT\Code\Project\Cocoa_Bean_Prediction\static\images\captured')
+if not os.path.exists(captured_img_dir):
+    os.makedirs(captured_img_dir)
+
+@app.route('/save_captured_image', methods=['POST'])
+def save_captured_image():
+    try:
+        image_data = request.json['imageData']
+        if image_data.startswith('data:image/'):
+            # Remove the data URL prefix
+            image_data = image_data.split(',')[1]
+            # Decode the base64 string
+            image_bytes = base64.b64decode(image_data)
+            # Generate a unique filename
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"captured_{timestamp}.png"
+            file_path = os.path.join(captured_img_dir, filename)
+            # Save the image
+            with open(file_path, 'wb') as f:
+                f.write(image_bytes)
+            logging.info(f"Captured image saved: {file_path}")
+            return jsonify({"success": True, "filename": filename})
+        else:
+            logging.warning("Invalid image data format")
+            return jsonify({"success": False, "error": "Invalid image data format"}), 400
+    except Exception as e:
+        logging.error(f"Error saving captured image: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        if 'file' not in request.files:
-            return "No file part", 400
+        logging.info("Received prediction request")
+        logging.info(f"Form data keys: {request.form.keys()}")
+        logging.info(f"Files: {request.files}")
 
-        file = request.files['file']
-        
-        if file.filename == '':
-            return "No selected file", 400
-        
-        if file and allowed_file(file.filename):
-            # Read image file and save to target_img directory
-            filename = file.filename
-            file_path = os.path.join(target_img, filename)
-            file.save(file_path)
-
-            # Read the image again to prepare for prediction
-            img = read_image(file_path)
+        file_path = None
+        if 'file' in request.files:
+            logging.info("File upload detected")
+            file = request.files['file']
+            logging.info(f"Filename: {file.filename}")
+            if file.filename != '':
+                if allowed_file(file.filename):
+                    filename = file.filename
+                    file_path = os.path.join(target_img, filename)
+                    file.save(file_path)
+                    logging.info(f"File saved: {file_path}")
+                else:
+                    logging.info(f"Invalid file type: {file.filename}")
+                    return "Invalid file type. Allowed types are jpg, jpeg, png", 400
             
-            # Dictionary to store predictions from selected models
-            predictions = {}
-            
-            # Load and predict using selected models
-            for model_path in models_path:
-                app.logger.info(f"Loading model from: {model_path}")
-                model_name = os.path.basename(model_path).split('.')[0]
-                app.logger.debug(f"Model name: {model_name}")
-                model = tf.keras.models.load_model(model_path)
-                class_prediction = model.predict(img)
-                confidence = float(np.max(class_prediction)) * 100
-                class_idx = np.argmax(class_prediction, axis=1)[0]
-
-                # Store predictions with model name
-                predictions[model_name] = {
-                    "bean": class_idx,
-                    "confidence": confidence
-                }
-            
-            # Determine the best prediction
-            if predictions:
-                best_model, best_pred = max(predictions.items(), key=lambda item: item[1]['confidence'])
-                best_bean_class = best_pred['bean']
-                confidence = best_pred['confidence']
-                
-                bean_dict = {
-                    0: "Bean Fraction",
-                    1: "Broken Bean",
-                    2: "Fermented Bean",
-                    3: "Moldy Bean",
-                    4: "Unfermented Bean",
-                    5: "Whole Bean"
-                }
-                
-                bean = bean_dict.get(best_bean_class, "Error")
-
-                return render_template('predict.html', bean=bean, confidence=confidence, best_model=best_model)
-            else:
-                return "No valid models found for prediction", 500
+            elif 'filename' in request.form:
+                filename = request.form['filename']
+                file_path = os.path.join(captured_img_dir, filename)
+                logging.info(f"Using captured image: {file_path}")
         else:
-            return "File type not allowed or file could not be processed", 400
+            logging.warning("No file uploaded or captured image provided")
+            return "No file uploaded or captured image provided", 400
+
+        if not file_path or not os.path.exists(file_path):
+            logging.error("Invalid file path")
+            return "Invalid file path", 400
+
+        # Read the image and prepare for prediction
+        img = read_image(file_path)
+        
+        # Dictionary to store predictions from selected models
+        predictions = {}
+        
+        # Load and predict using selected models
+        for model_path in models_path:
+            logging.info(f"Loading model from: {model_path}")
+            model_name = os.path.basename(model_path).split('.')[0]
+            logging.info(f"Model name: {model_name}")
+            model = tf.keras.models.load_model(model_path)
+            class_prediction = model.predict(img)
+            confidence = float(np.max(class_prediction)) * 100
+            class_idx = np.argmax(class_prediction, axis=1)[0]
+
+            # Store predictions with model name
+            predictions[model_name] = {
+                "bean": class_idx,
+                "confidence": confidence
+            }
+        
+        # Determine the best prediction
+        if predictions:
+            best_model, best_pred = max(predictions.items(), key=lambda item: item[1]['confidence'])
+            best_bean_class = best_pred['bean']
+            confidence = best_pred['confidence']
+            
+            bean_dict = {
+                0: "Bean Fraction",
+                1: "Broken Bean",
+                2: "Fermented Bean",
+                3: "Moldy Bean",
+                4: "Unfermented Bean",
+                5: "Whole Bean"
+            }
+            
+            bean = bean_dict.get(best_bean_class, "Error")
+
+            return render_template('predict.html', bean=bean, confidence=confidence, best_model=best_model)
+        else:
+            return "No valid models found for prediction", 500
 
     except Exception as e:
-        app.logger.error(f"Error during prediction: {e}")
+        logging.info(f"Error during prediction: {e}")
         return "Internal server error", 500
-
+    
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=False, port=8000)

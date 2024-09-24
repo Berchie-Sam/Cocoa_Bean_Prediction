@@ -1,4 +1,3 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -40,24 +39,20 @@
 <body>
     <div class="container mt-5">
         <div class="card form-container">
-            <!-- <video id="video" width="640" height="480" autoplay></video>
-            <button id="snap">Snap Photo</button>
-            <canvas id="canvas" width="640" height="480"></canvas> -->
             <div class="card-body">
                 <h1 class="card-title text-center mb-4">Cocoa Bean Prediction</h1>
                 <form action="/predict" method="post" enctype="multipart/form-data" id="predictForm">
                     <div class="form-group">
                         <label for="file">Upload an image:</label>
-                        <input type="file" class="form-control-file" name="file" id="file" accept="image/*" required>
+                        <input type="file" class="form-control-file" name="file" id="file" accept="image/*">
                     </div>
                     <div class="form-group">
                         <img id="imagePreview" src="#" alt="Image Preview" class="img-fluid image-preview">
                     </div>
-                    <!-- Hidden input to store base64 image data -->
-                    <input type="hidden" id="imageData" name="imageData">
+                    <input type="hidden" id="capturedFilename" name="filename">
                     <div class="text-center">
                         <button type="button" class="btn btn-secondary mr-2" onclick="clearPreview()">Clear</button>
-                        <button type="submit" id="fileInput" class="btn btn-primary">Upload and Predict</button>
+                        <button type="submit" class="btn btn-primary">Upload and Predict</button>
                     </div>
                     <div id="loading" class="loading-indicator">
                         <div class="spinner-border text-primary" role="status">
@@ -68,92 +63,20 @@
                 </form>
             </div>
             <div>
-               <h2>Use Camera</h2> 
-               <button id="openCameraButton" class="btn btn-sm btn-dark m-2">Open Camera</button>
-               <video id="video" width="640" height="480" autoplay style="display:none;"></video>
-               <button id="captureButton" class="btn btn-sm btn-primary m-2" style="display:none;">Capture Image</button>
-               <canvas id="canvas"  width="640" height="480" style="display:none;"></canvas>
-               <img id="snapshot" width="300" style="display:none;" />
-               <button id="uploadButton" class="btn btn-sm btn-success m-2" style="display:none;">Upload Image</button>
-               <button id="clearButton" class="btn btn-sm btn-dark m-2" style="display:none;">Clear Image</button>
+                <h2>Use Camera</h2>
+                <button id="openCameraButton" class="btn btn-sm btn-dark m-2">Open Camera</button>
+                <video id="video" width="640" height="480" autoplay style="display:none;"></video>
+                <button id="captureButton" class="btn btn-sm btn-primary m-2" style="display:none;">Capture Image</button>
+                <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+                <img id="snapshot" width="300" style="display:none;" />
+                <button id="uploadButton" class="btn btn-sm btn-success m-2" style="display:none;">Upload and Predict</button>
+                <button id="clearButton" class="btn btn-sm btn-dark m-2" style="display:none;">Clear Image</button>
             </div>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- <script>
-        // Select elements
-const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
-const snapButton = document.getElementById('snap');
-const fileInput = document.getElementById('fileInput');
-const context = canvas.getContext('2d');
-
-// Request access to the camera
-navigator.mediaDevices.getUserMedia({ video: true })
-    .then((stream) => {
-        video.srcObject = stream;
-    })
-    .catch((err) => {
-        console.error('Error accessing the camera: ', err);
-    });
-
-// Take a picture when the button is clicked
-snapButton.addEventListener('click', () => {
-    // Draw the video frame to the canvas
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    // Convert the canvas image to a blob
-    canvas.toBlob((blob) => {
-        // Create a new File object
-        const file = new File([blob], 'photo.png', { type: 'image/png' });
-
-        // Create a new DataTransfer object
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(file);
-
-        // Assign the File object to the input type file
-        fileInput.files = dataTransfer.files;
-
-        console.log(fileInput.files);  // Check the File object in the input
-    });
-});
-
-    </script>
-    <script>
-        // Function to clear image preview and input
-        function clearPreview() {
-            var fileInput = document.getElementById('file');
-            fileInput.value = ''; // Clear file input
-            var imgPreview = document.getElementById('imagePreview');
-            imgPreview.src = '#'; // Clear image source
-            imgPreview.classList.add('d-none'); // Hide image preview
-            var imageDataInput = document.getElementById('imageData');
-            imageDataInput.value = ''; // Clear base64 data
-        }
-
-        // Show the image preview after file selection
-        document.getElementById('file').addEventListener('change', function(event) {
-            var reader = new FileReader();
-            reader.onload = function() {
-                var img = document.getElementById('imagePreview');
-                img.src = reader.result;
-                img.classList.remove('d-none'); // Show image preview
-                var imageDataInput = document.getElementById('imageData');
-                imageDataInput.value = reader.result; // Store base64 data
-            };
-            if (event.target.files[0]) {
-                reader.readAsDataURL(event.target.files[0]);
-            }
-        });
-
-        // Show the loading indicator when the form is submitted
-        document.getElementById('predictForm').addEventListener('submit', function() {
-            document.getElementById('loading').style.display = 'block'; // Show loading indicator
-        });
-    </script> -->
-
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
@@ -162,68 +85,94 @@ snapButton.addEventListener('click', () => {
         const captureButton = document.getElementById('captureButton');
         const uploadButton = document.getElementById('uploadButton');
         const clearButton = document.getElementById('clearButton');
-        let imgData; // Variable to store captured image data
+        const predictForm = document.getElementById('predictForm');
+        const imageDataInput = document.getElementById('imageData');
+        let imgData;
 
-        // Open the webcam
         openCameraButton.addEventListener('click', () => {
             navigator.mediaDevices.getUserMedia({ video: true })
                 .then((stream) => {
                     video.srcObject = stream;
-                    video.style.display = 'block'; // Show video element
-                    captureButton.style.display = 'inline-block'; // Show capture button
-                    openCameraButton.style.display = 'none'; // Hide open camera button
+                    video.style.display = 'block';
+                    captureButton.style.display = 'inline-block';
+                    openCameraButton.style.display = 'none';
                 })
                 .catch((err) => {
                     console.error("Error accessing webcam: ", err);
                 });
         });
 
-        // Capture image
-        captureButton.addEventListener('click', () => {
+         captureButton.addEventListener('click', () => {
             const context = canvas.getContext('2d');
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            // Get the image data as a Base64 string
             imgData = canvas.toDataURL('image/png');
-
-            // Display the captured image
             snapshot.src = imgData;
             snapshot.style.display = 'block';
-            uploadButton.style.display = 'inline-block'; // Show the upload button
-            clearButton.style.display = 'inline-block'; // Show the clear button
+            uploadButton.style.display = 'inline-block';
+            clearButton.style.display = 'inline-block';
+
+            // Send the captured image to the server
+            fetch('/save_captured_image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ imageData: imgData }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('capturedFilename').value = data.filename;
+                } else {
+                    console.error('Error saving captured image:', data.error);
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
         });
 
-        // Upload image
         uploadButton.addEventListener('click', () => {
-            if (imgData) {
-                fetch('upload.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ image: imgData })
-                })
-                    .then(response => response.text())
-                    .then(data => {
-                        console.log(data);
-                        alert('Image uploaded successfully!');
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
+            if (document.getElementById('capturedFilename').value) {
+                predictForm.submit();
             } else {
                 alert('No image to upload. Please capture an image first.');
             }
         });
 
-        // Clear captured image
         clearButton.addEventListener('click', () => {
-            imgData = null; // Clear the image data
-            snapshot.style.display = 'none'; // Hide the captured image
-            clearButton.style.display = 'none'; // Hide the clear button
-            uploadButton.style.display = 'none'; // Hide the upload button
+            imgData = null;
+            snapshot.style.display = 'none';
+            clearButton.style.display = 'none';
+            uploadButton.style.display = 'none';
+            document.getElementById('capturedFilename').value = '';
         });
 
+        function clearPreview() {
+            var fileInput = document.getElementById('file');
+            fileInput.value = '';
+            var imgPreview = document.getElementById('imagePreview');
+            imgPreview.src = '#';
+            imgPreview.classList.add('d-none');
+            imageDataInput.value = '';
+        }
+
+        document.getElementById('file').addEventListener('change', function(event) {
+            var reader = new FileReader();
+            reader.onload = function() {
+                var img = document.getElementById('imagePreview');
+                img.src = reader.result;
+                img.classList.remove('d-none');
+                imageDataInput.value = reader.result;
+            };
+            if (event.target.files[0]) {
+                reader.readAsDataURL(event.target.files[0]);
+            }
+        });
+
+        predictForm.addEventListener('submit', function() {
+            document.getElementById('loading').style.display = 'block';
+        });
     </script>
 </body>
 </html>

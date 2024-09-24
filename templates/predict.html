@@ -12,7 +12,12 @@
         <div class="card">
             <div class="card-body">
                 <h1 class="card-title text-center">Cocoa Bean Prediction Result</h1>
-                <div class="mt-4">
+                <div class="text-center mt-4">
+					<img src="{{ url_for('static', filename='images/captured_image.png') }}" alt="Captured Image" class="img-fluid" />
+				</div>
+
+
+				<div class="mt-4">
                     <p><strong>Predicted Bean Type:</strong> {{ bean }}</p>
                     <p><strong>Confidence:</strong> {{ "%.3f" % confidence }}%</p>
                 </div>
