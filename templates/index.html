@@ -49,10 +49,24 @@
                     <div class="form-group">
                         <img id="imagePreview" src="#" alt="Image Preview" class="img-fluid image-preview">
                     </div>
+                    
+                    <!-- Hidden field to store captured filename -->
                     <input type="hidden" id="capturedFilename" name="filename">
+
+                    <!-- Camera Section -->
                     <div class="text-center">
-                        <button type="button" class="btn btn-secondary mr-2" onclick="clearPreview()">Clear</button>
-                        <button type="submit" class="btn btn-primary">Upload and Predict</button>
+                        <h2>Use Camera</h2>
+                        <button type="button" id="openCameraButton" class="btn btn-sm btn-dark m-2">Open Camera</button>
+                        <video id="video" width="640" height="480" autoplay style="display:none;"></video>
+                        <button type="button" id="captureButton" class="btn btn-sm btn-primary m-2" style="display:none;">Capture Image</button>
+                        <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+                        <img id="snapshot" width="300" style="display:none;" />
+                        <button type="button" id="clearButton" class="btn btn-sm btn-dark m-2" style="display:none;">Clear Image</button>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <button type="button" class="btn btn-secondary mr-2" onclick="clearPreview()">Clear Upload</button>
+                        <button type="submit" class="btn btn-primary">Predict</button> <!-- Single submit button -->
                     </div>
                     <div id="loading" class="loading-indicator">
                         <div class="spinner-border text-primary" role="status">
@@ -61,16 +75,6 @@
                         <p class="mt-2">Processing...</p>
                     </div>
                 </form>
-            </div>
-            <div>
-                <h2>Use Camera</h2>
-                <button id="openCameraButton" class="btn btn-sm btn-dark m-2">Open Camera</button>
-                <video id="video" width="640" height="480" autoplay style="display:none;"></video>
-                <button id="captureButton" class="btn btn-sm btn-primary m-2" style="display:none;">Capture Image</button>
-                <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
-                <img id="snapshot" width="300" style="display:none;" />
-                <button id="uploadButton" class="btn btn-sm btn-success m-2" style="display:none;">Upload and Predict</button>
-                <button id="clearButton" class="btn btn-sm btn-dark m-2" style="display:none;">Clear Image</button>
             </div>
         </div>
     </div>
@@ -83,11 +87,8 @@
         const snapshot = document.getElementById('snapshot');
         const openCameraButton = document.getElementById('openCameraButton');
         const captureButton = document.getElementById('captureButton');
-        const uploadButton = document.getElementById('uploadButton');
         const clearButton = document.getElementById('clearButton');
         const predictForm = document.getElementById('predictForm');
-        const imageDataInput = document.getElementById('imageData');
-        let imgData;
 
         openCameraButton.addEventListener('click', () => {
             navigator.mediaDevices.getUserMedia({ video: true })
@@ -102,50 +103,22 @@
                 });
         });
 
-         captureButton.addEventListener('click', () => {
-            const context = canvas.getContext('2d');
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            imgData = canvas.toDataURL('image/png');
-            snapshot.src = imgData;
-            snapshot.style.display = 'block';
-            uploadButton.style.display = 'inline-block';
-            clearButton.style.display = 'inline-block';
-
-            // Send the captured image to the server
-            fetch('/save_captured_image', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ imageData: imgData }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('capturedFilename').value = data.filename;
-                } else {
-                    console.error('Error saving captured image:', data.error);
-                }
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-        });
-
-        uploadButton.addEventListener('click', () => {
-            if (document.getElementById('capturedFilename').value) {
-                predictForm.submit();
-            } else {
-                alert('No image to upload. Please capture an image first.');
-            }
-        });
+        //captureButton.addEventListener('click', () => {
+          //  const context = canvas.getContext('2d');
+            //context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            //const imgData = canvas.toDataURL('image/png');
+            //snapshot.src = imgData;
+            //snapshot.style.display = 'block';
+            //clearButton.style.display = 'inline-block';  
+        //});
 
         clearButton.addEventListener('click', () => {
-            imgData = null;
             snapshot.style.display = 'none';
             clearButton.style.display = 'none';
-            uploadButton.style.display = 'none';
-            document.getElementById('capturedFilename').value = '';
+            document.getElementById('capturedFilename').value = ''; // Clear captured image data
+            video.style.display = 'none';
+            captureButton.style.display = 'none';
+            openCameraButton.style.display = 'inline-block'; // Show the camera button again
         });
 
         function clearPreview() {
@@ -154,7 +127,6 @@
             var imgPreview = document.getElementById('imagePreview');
             imgPreview.src = '#';
             imgPreview.classList.add('d-none');
-            imageDataInput.value = '';
         }
 
         document.getElementById('file').addEventListener('change', function(event) {
@@ -163,15 +135,88 @@
                 var img = document.getElementById('imagePreview');
                 img.src = reader.result;
                 img.classList.remove('d-none');
-                imageDataInput.value = reader.result;
             };
             if (event.target.files[0]) {
                 reader.readAsDataURL(event.target.files[0]);
             }
         });
+		
+		captureButton.addEventListener('click', () => {
+			const context = canvas.getContext('2d');
+			context.drawImage(video, 0, 0, canvas.width, canvas.height);
+			const imgData = canvas.toDataURL('image/png');
 
-        predictForm.addEventListener('submit', function() {
+			// Send the base64 data to the server to save the image
+			fetch('/save_captured_image', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ imageData: imgData }),
+			})
+			.then(response => response.json())
+			.then(data => {
+				if (data.success) {
+					// Update the hidden input with the saved filename
+					document.getElementById('capturedFilename').value = data.filename;
+					snapshot.src = imgData;
+					snapshot.style.display = 'block';
+					clearButton.style.display = 'inline-block';
+				} else {
+					alert(data.error || 'Error saving captured image.');
+				}
+			})
+			.catch(error => {
+				console.error('Error:', error);
+			});
+		});
+
+
+        predictForm.addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent the default form submission
+            
+            // Show loading indicator
             document.getElementById('loading').style.display = 'block';
+
+            // Create FormData object
+            const formData = new FormData(this);
+
+            // Send the form data to the server
+            fetch('/predict', {
+				method: 'POST',
+				body: formData,
+			})
+			.then(response => {
+				document.getElementById('loading').style.display = 'none';
+
+				if (!response.ok) {
+					// Check if the response is JSON or text
+					const contentType = response.headers.get('content-type');
+					
+					if (contentType && contentType.includes('application/json')) {
+						// If the response is JSON, parse it
+						return response.json().then(data => {
+							alert(data.message || "An error occurred"); // Show JSON error message
+						});
+					} else {
+						// If the response is not JSON, handle it as text
+						return response.text().then(text => {
+							alert(text || "An unknown error occurred"); // Show text error message
+						});
+					}
+				}
+
+				// If the response is OK, handle rendering of the page
+				return response.text().then(html => {
+					document.open();
+					document.write(html);
+					document.close();
+				});
+			})
+			.catch(error => {
+				document.getElementById('loading').style.display = 'none';
+				alert("An error occurred: " + error.message); // Show error in a popup
+			});
         });
     </script>
 </body>

@@ -13,6 +13,7 @@ app = Flask(__name__)
 
 # Directory containing models (relative path)
 models_dir = os.path.join(os.getcwd(), "models")
+is_bean_model_dir = os.path.join(os.getcwd(), "static/check_bean")
 
 # Specific model files to use
 models_path = [
@@ -82,14 +83,12 @@ def save_captured_image():
 def predict():
     try:
         logging.info("Received prediction request")
-        logging.info(f"Form data keys: {request.form.keys()}")
-        logging.info(f"Files: {request.files}")
 
         file_path = None
+
         if 'file' in request.files:
             logging.info("File upload detected")
             file = request.files['file']
-            logging.info(f"Filename: {file.filename}")
             if file.filename != '':
                 if allowed_file(file.filename):
                     filename = file.filename
@@ -97,67 +96,83 @@ def predict():
                     file.save(file_path)
                     logging.info(f"File saved: {file_path}")
                 else:
-                    logging.info(f"Invalid file type: {file.filename}")
-                    return "Invalid file type. Allowed types are jpg, jpeg, png", 400
-            
-            elif 'filename' in request.form:
-                filename = request.form['filename']
-                file_path = os.path.join(captured_img_dir, filename)
-                logging.info(f"Using captured image: {file_path}")
+                    logging.error(f"Invalid file type: {file.filename}")
+                    return jsonify({"success": False, "error": "Invalid file type. Allowed types are jpg, jpeg, png"}), 400
+
+        elif 'filename' in request.form:
+            # Use the saved captured image
+            filename = request.form['filename']
+            file_path = os.path.join(captured_img_dir, filename)
+            logging.info(f"Using captured image: {file_path}")
+
         else:
             logging.warning("No file uploaded or captured image provided")
-            return "No file uploaded or captured image provided", 400
+            return jsonify({"success": False, "error": "No file uploaded or captured image provided"}), 400
 
         if not file_path or not os.path.exists(file_path):
             logging.error("Invalid file path")
-            return "Invalid file path", 400
+            return jsonify({"success": False, "error": "Invalid file path"}), 400
 
-        # Read the image and prepare for prediction
+        # Process the image for prediction
         img = read_image(file_path)
         
-        # Dictionary to store predictions from selected models
-        predictions = {}
-        
-        # Load and predict using selected models
-        for model_path in models_path:
-            logging.info(f"Loading model from: {model_path}")
-            model_name = os.path.basename(model_path).split('.')[0]
-            logging.info(f"Model name: {model_name}")
-            model = tf.keras.models.load_model(model_path)
-            class_prediction = model.predict(img)
-            confidence = float(np.max(class_prediction)) * 100
-            class_idx = np.argmax(class_prediction, axis=1)[0]
+        logging.info("Loading is_bean_model")
+        is_bean_model = tf.keras.models.load_model(os.path.join(is_bean_model_dir, 'is_bean_model.h5'))
+        is_bean_prediction = is_bean_model.predict(img)
+        is_bean_class = np.argmax(is_bean_prediction, axis=1)[0]  # 0 for Cocoa Bean, 1 for Non-Cocoa Bean
 
-            # Store predictions with model name
-            predictions[model_name] = {
-                "bean": class_idx,
-                "confidence": confidence
-            }
-        
-        # Determine the best prediction
-        if predictions:
-            best_model, best_pred = max(predictions.items(), key=lambda item: item[1]['confidence'])
-            best_bean_class = best_pred['bean']
-            confidence = best_pred['confidence']
-            
-            bean_dict = {
-                0: "Bean Fraction",
-                1: "Broken Bean",
-                2: "Fermented Bean",
-                3: "Moldy Bean",
-                4: "Unfermented Bean",
-                5: "Whole Bean"
-            }
-            
-            bean = bean_dict.get(best_bean_class, "Error")
+        if is_bean_class == 1:  # Non-Cocoa Bean
+            logging.info("Non-Cocoa Bean detected")
+            return jsonify({"success": False, "message": "The image is not a Cocoa Bean, please upload a valid image."}), 400
 
-            return render_template('predict.html', bean=bean, confidence=confidence, best_model=best_model)
         else:
-            return "No valid models found for prediction", 500
+            # If it's a Cocoa Bean, proceed with other models
+            logging.info("Cocoa Bean detected, proceeding to classify bean type")
+
+            # Dictionary to store predictions from selected models
+            predictions = {}
+            
+            # Load and predict using selected models
+            for model_path in models_path:
+                logging.info(f"Loading model from: {model_path}")
+                model_name = os.path.basename(model_path).split('.')[0]
+                logging.info(f"Model name: {model_name}")
+                model = tf.keras.models.load_model(model_path)
+                class_prediction = model.predict(img)
+                confidence = float(np.max(class_prediction)) * 100
+                class_idx = np.argmax(class_prediction, axis=1)[0]
+
+                # Store predictions with model name
+                predictions[model_name] = {
+                    "bean": class_idx,
+                    "confidence": confidence
+                }
+            
+            # Determine the best prediction
+            if predictions:
+                best_model, best_pred = max(predictions.items(), key=lambda item: item[1]['confidence'])
+                best_bean_class = best_pred['bean']
+                confidence = best_pred['confidence']
+                
+                bean_dict = {
+                    0: "Bean Fraction",
+                    1: "Broken Bean",
+                    2: "Fermented Bean",
+                    3: "Moldy Bean",
+                    4: "Unfermented Bean",
+                    5: "Whole Bean"
+                }
+                
+                bean = bean_dict.get(best_bean_class, "Error")
+
+                return render_template('predict.html', bean=bean, confidence=confidence, best_model=best_model)
+            else:
+                return jsonify({"success": False, "error": "No valid models found for prediction"}), 500
 
     except Exception as e:
         logging.info(f"Error during prediction: {e}")
-        return "Internal server error", 500
+        return jsonify({"success": False, "error": str(e)}), 500
+
     
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=False, port=8000)
