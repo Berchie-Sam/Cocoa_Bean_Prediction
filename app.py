@@ -49,8 +49,11 @@ def read_image(filename):
 def index_view():
     return render_template('index.html')
 
-# Directory to save captured images
-captured_img_dir = os.path.join(target_img, 'D:\RGT\Code\Project\Cocoa_Bean_Prediction\static\images\captured')
+# Directory to save captured images (relative path)
+base_dir = os.path.dirname(os.path.abspath(__file__))
+captured_img_dir = os.path.join(base_dir, 'static', 'images', 'captured')
+
+# Ensure the directory exists
 if not os.path.exists(captured_img_dir):
     os.makedirs(captured_img_dir)
 
